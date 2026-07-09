@@ -502,6 +502,47 @@ const ITEMS = [
     tips:["構想中のコンテンツです","晴れた夜に","焚き火とセットで"] },
 ];
 
+/* ===== レンタル情報（BREEZEは「手ぶら＝レンタル」が基本）=====
+   free:true = 自由に使える（レンタル不要） / items = 借りるもの / where = 借りる場所（既定:管理棟）
+   ※ここに載っていない体験（食事・工作・買いもの等）はレンタル欄を表示しません */
+const RENTAL = {
+  /* 🆓 自由に使える（レンタル不要） */
+  "ビーチで宝さがし":               { free:true },
+  "砂場の王国づくり":               { free:true },
+  "クライミングウォールに挑戦":     { free:true },
+  "木製アスレチックの大冒険":       { free:true },
+  "キッズドーム（涼しい秘密基地）": { free:true },
+  "ころがるすべり台":               { free:true },
+  "ハンモックでゆらゆら":           { free:true },
+  "ドッグラン":                     { free:true },
+  /* 🎒 レンタルあり（既定：管理棟で貸し出し） */
+  "大空に凧をあげよう":             { items:"凧（カイト）" },
+  "みんなでモルック対決":           { items:"モルック一式" },
+  "ストライダー・チャレンジ":       { items:"ストライダー" },
+  "キックボードでGO":               { items:"キックボード" },
+  "みんなでミニサッカー":           { items:"ボール・ミニゴール" },
+  "トランプ・ボードゲーム":         { items:"トランプ・ボードゲーム各種" },
+  "縄跳び・バドミントン":           { items:"縄跳び・バドミントン" },
+  "電動バランススクーター":         { items:"電動バランススクーター（有料・数量限定）" },
+  "焚き火を囲む夜":                 { items:"焚き火台・薪" },
+  "はじめてのテント設営体験":       { items:"テント・寝袋・ランタン一式", where:"宿泊プランに含む" },
+  "WeberグリルでプレミアムBBQ":     { items:"Weberグリル・調理器具一式", where:"BBQプランに含む" },
+  /* 🎒 構想中（レンタル品も構想中） */
+  "犬とあるく、海辺のさんぽみち":   { items:"うんち処理セット（マナー袋）" },
+  "王国クリーン隊":                 { items:"専用ゴミ袋・火ばさみ（トング）" },
+  "無限砂場 〜ビーチの王国〜":      { items:"お砂場セット" },
+  "夕日のヨギボー":                 { items:"特大ヨギボー（ビーズソファ）" },
+  "ビーチパラソルで、自分だけの日かげ": { items:"ビーチパラソル・ソファセット" },
+  "遠投フィッシング体験":           { items:"釣竿・エサ" },
+  "星空望遠鏡ナイト":               { items:"天体望遠鏡" },
+};
+function rentalRow(it){
+  const r = RENTAL[it.title];
+  if(!r) return '';
+  if(r.free) return `<div class="m-info-row"><span class="k">レンタル</span><span class="v">🆓 自由に使えます（レンタル不要）</span></div>`;
+  return `<div class="m-info-row"><span class="k">レンタル</span><span class="v">🎒 ${r.items}<br><small class="rent-where">借りる場所：${r.where||"管理棟"}</small></span></div>`;
+}
+
 /* ===== state ===== */
 const grid = document.getElementById('grid');
 const cntEl = document.getElementById('cnt');
@@ -654,6 +695,7 @@ function openModal(i){
         <div class="m-info-row"><span class="k">だれと</span><span class="v">${whoLabels(it.who)}</span></div>
         <div class="m-info-row"><span class="k">所要のめやす</span><span class="v">${it.time}</span></div>
         <div class="m-info-row"><span class="k">料金</span><span class="v">${it.price}</span></div>
+        ${rentalRow(it)}
       </div>
       ${it.adult ? `<p class="m-adult">🌿 <b>大人にうれしい</b>：${it.adult}</p>` : ''}
       <p class="m-section-h">たのしみ方・ポイント</p>
