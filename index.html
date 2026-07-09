@@ -92,6 +92,26 @@
   .world-card.adult{border-top:5px solid var(--calm)}
   @media(max-width:720px){.world-grid{grid-template-columns:1fr}}
 
+  /* ---------- Staff (スタッフ紹介) ---------- */
+  .staff{margin-top:26px}
+  .staff-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:0 0 4px}
+  .staff-h h2{font-size:19px;margin:0;display:flex;align-items:center;gap:8px}
+  .staff-h .note-s{font-size:11.5px;color:var(--ink-soft)}
+  .staff-sub{font-size:13.5px;color:var(--ink-soft);margin:0 0 16px}
+  .staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:14px}
+  .sc{background:var(--card);border-radius:16px;padding:18px 15px 15px;box-shadow:var(--shadow);
+    border:1px solid #eee;text-align:center;position:relative}
+  .sc .sav{width:66px;height:66px;border-radius:50%;margin:0 auto 10px;display:flex;align-items:center;
+    justify-content:center;font-size:33px;box-shadow:0 6px 14px rgba(35,64,85,.18);
+    filter:drop-shadow(0 1px 0 rgba(255,255,255,.3))}
+  .sc .role{font-size:15px;font-weight:800;margin:0 0 2px;color:var(--ink)}
+  .sc .dept{font-size:11px;color:var(--sea-deep);font-weight:700;margin:0 0 9px;letter-spacing:.02em}
+  .sc .msg{font-size:12px;color:var(--ink-soft);line-height:1.65;margin:0}
+  .sc .stag{position:absolute;top:9px;right:9px;background:#eef2f5;color:#8a99a3;font-size:9.5px;
+    font-weight:800;padding:2px 8px;border-radius:6px;letter-spacing:.04em}
+  .staff-note{margin:14px 0 0;font-size:11.5px;color:var(--ink-soft);
+    background:#fff8ec;border:1px solid #f2e4c4;border-radius:10px;padding:9px 13px}
+
   /* ---------- Progress (図鑑制覇) ---------- */
   .progress{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 22px;margin:24px 0 8px}
   .progress-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;flex-wrap:wrap;gap:6px}
@@ -259,6 +279,42 @@
         <p>子供が遊ぶそばで、ハンモック・焚き火・海の音。「見守りながら、ちゃんと休める」時間を。</p>
       </div>
     </div>
+  </section>
+
+  <!-- スタッフ（社員）紹介 -->
+  <section class="staff">
+    <div class="staff-h">
+      <h2>👑 王国のなかまたち</h2>
+      <span class="note-s">― スタッフ紹介 ―</span>
+    </div>
+    <p class="staff-sub">手ぶらで来ても大丈夫。こんな“王国の住人”たちが、家族の一日をまるごとサポートします。</p>
+    <div class="staff-grid">
+      <div class="sc"><span class="stag">サンプル</span>
+        <div class="sav g-sea">👑</div>
+        <p class="role">王国長</p><p class="dept">場長／お出迎え・安全</p>
+        <p class="msg">「ようこそ海辺の王国へ。今日を最高の一日にしましょう！」</p></div>
+      <div class="sc"><span class="stag">サンプル</span>
+        <div class="sav g-play">🎒</div>
+        <p class="role">手ぶらコンシェルジュ</p><p class="dept">受付・レンタル</p>
+        <p class="msg">「道具は全部そろっています。手ぶらでどうぞ！」</p></div>
+      <div class="sc"><span class="stag">サンプル</span>
+        <div class="sav g-adv">🦀</div>
+        <p class="role">海の案内人</p><p class="dept">ビーチ・磯あそび</p>
+        <p class="msg">「潮だまりのカニの見つけ方、こっそり教えます。」</p></div>
+      <div class="sc"><span class="stag">サンプル</span>
+        <div class="sav g-food">🔥</div>
+        <p class="role">たき火番長</p><p class="dept">BBQ・焚き火・ごはん</p>
+        <p class="msg">「火の番はおまかせ。ぜんぶおいしく焼きますよ。」</p></div>
+      <div class="sc"><span class="stag">サンプル</span>
+        <div class="sav g-make">🎯</div>
+        <p class="role">あそび大臣</p><p class="dept">アクティビティ・イベント</p>
+        <p class="msg">「今日は何して遊ぶ？いっしょに決めよう！」</p></div>
+      <div class="sc"><span class="stag">サンプル</span>
+        <div class="sav g-relax">🐕</div>
+        <p class="role">看板犬 マロン</p><p class="dept">ドッグラン・癒やし担当</p>
+        <p class="msg">「ワン！（家族もワンちゃんも、みんな待ってるよ）」</p></div>
+    </div>
+    <p class="staff-note">※ こちらはレイアウトのサンプルです。実際のスタッフのお名前・お顔写真・ひとことに差し替えてご利用いただけます（<code>index.html</code> の「スタッフ（社員）紹介」欄）。</p>
   </section>
 
   <!-- 図鑑制覇スタンプ -->
