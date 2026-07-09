@@ -152,6 +152,14 @@
   .fee{margin-left:auto;font-weight:800;font-size:11.5px}
   .fee-free{color:#2e9d63} .fee-inc{color:#1b7fb8} .fee-paid{color:#e0743a} .fee-tbd{color:#9a9a9a}
   .more{margin-top:10px;font-size:12.5px;font-weight:800;color:var(--sea-deep)}
+  .rent-badge{font-weight:800;font-size:10.5px;padding:1px 8px;border-radius:999px;line-height:1.75;white-space:nowrap}
+  .rent-badge.rent{background:#eaf3fb;color:#1b6f9e}
+  .rent-badge.free{background:#eaf7ef;color:#2e9d63}
+  .rent-guide{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;
+    background:linear-gradient(100deg,var(--sky-soft),#fff);border:1px solid #dcebf5;
+    border-radius:14px;padding:11px 16px;margin:2px 0 16px;font-size:13px;color:var(--ink);line-height:1.7}
+  .rent-guide b{color:var(--sea-deep)}
+  .rent-guide small{color:var(--ink-soft);font-size:11.5px}
 
   .ghost{border:2px dashed #c8d6e0;background:#fff;border-radius:var(--radius);
     display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
@@ -289,6 +297,13 @@
     </div>
   </section>
   <div class="count"><b id="cnt">0</b> 件の体験</div>
+
+  <div class="rent-guide">
+    <b>🎒 BREEZEは手ぶらでOK。</b>
+    <span>道具は<b>管理棟でレンタル</b>できます（<span class="rent-badge rent">🎒 レンタル</span>）。</span>
+    <span><span class="rent-badge free">🆓 自由</span>の設備は、そのまま自由に使えます。</span>
+    <small>くわしくは各カードをタップ →「レンタル」欄をご覧ください。</small>
+  </div>
 
   <section class="grid" id="grid"></section>
 
@@ -542,6 +557,12 @@ function rentalRow(it){
   if(r.free) return `<div class="m-info-row"><span class="k">レンタル</span><span class="v">🆓 自由に使えます（レンタル不要）</span></div>`;
   return `<div class="m-info-row"><span class="k">レンタル</span><span class="v">🎒 ${r.items}<br><small class="rent-where">借りる場所：${r.where||"管理棟"}</small></span></div>`;
 }
+function rentalBadge(it){
+  const r = RENTAL[it.title];
+  if(!r) return '';
+  if(r.free) return `<span class="rent-badge free">🆓 自由</span>`;
+  return `<span class="rent-badge rent">🎒 レンタル</span>`;
+}
 
 /* ===== state ===== */
 const grid = document.getElementById('grid');
@@ -587,6 +608,7 @@ function cardHTML(it, i){
       <p class="do"><span class="do-tag">やること</span>${it.do}</p>
       <div class="meta">
         <span>⏱ ${it.time}</span>
+        ${rentalBadge(it)}
         <span class="fee ${fee.cls}">${fee.txt}</span>
       </div>
       <div class="more">👑 ストーリーを見る →</div>
