@@ -1,0 +1,10 @@
+# Web公開に含めないもの
+
+# ダウンロードした一時トンネル用バイナリ（54MB）
+cloudflared.exe
+
+# ゲート無しの単体版。Pagesに置くとパスワードを素通りできるため除外
+BREEZE-zukan.html
+
+# ローカル設定
+.claude/

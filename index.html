@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BREEZE 海辺の王国 ― 体験ずかん（プロトタイプ）</title>
+<meta name="description" content="BREEZE 海辺の王国 体験ずかん — 手ぶらで楽しむ家族向け海辺キャンプ場の体験を、ひとつひとつ物語で紹介。こどもは冒険、おとなはリラックス。">
+<meta property="og:title" content="BREEZE 海辺の王国 ― 体験ずかん">
+<meta property="og:description" content="こどもは冒険、おとなはリラックス。ブリーズの体験を、海辺の王国の物語で。">
+<meta property="og:image" content="images/hero.webp">
+<meta property="og:type" content="website">
+<!-- ===== BREEZE 簡易パスワードゲート（クライアント側／プロトタイプ用の"見た目の鍵"） ===== -->
+<script>
+  (function(){
+    try{ if(localStorage.getItem('breeze_gate')==='ok'){ return; } }catch(e){}
+    document.documentElement.className += ' breeze-locked';
+  })();
+</script>
+<style>
+  html.breeze-locked body{overflow:hidden !important}
+  html.breeze-locked body > *:not(#breeze-gate){display:none !important}
+  html:not(.breeze-locked) #breeze-gate{display:none}
+  #breeze-gate{
+    position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(160deg,#0a4d68,#088395,#05bfdb);
+    font-family:system-ui,-apple-system,"Segoe UI","Hiragino Kaku Gothic ProN",sans-serif;color:#fff;
+  }
+  #breeze-gate .g-card{background:rgba(255,255,255,.12);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    padding:2.2rem 2rem;border-radius:18px;width:min(90vw,360px);
+    box-shadow:0 10px 40px rgba(0,0,0,.25);text-align:center}
+  #breeze-gate h2{font-size:1.15rem;margin:0 0 .3rem}
+  #breeze-gate p{margin:.2rem 0 1.3rem;opacity:.85;font-size:.85rem}
+  #breeze-gate input{width:100%;box-sizing:border-box;padding:.75rem .9rem;font-size:1.2rem;border:none;
+    border-radius:10px;text-align:center;letter-spacing:.35em;margin-bottom:.9rem}
+  #breeze-gate button{width:100%;padding:.75rem;font-size:1rem;font-weight:700;border:none;border-radius:10px;
+    background:#ffd23f;color:#0a4d68;cursor:pointer}
+  #breeze-gate .g-err{color:#fff;background:rgba(220,0,0,.35);padding:.5rem;border-radius:8px;
+    font-size:.8rem;margin-bottom:.8rem;display:none}
+</style>
+<style>
+  :root{
+    --sea-deep:#1b6f9e; --sea:#2a9dd0; --sky:#cdeefb; --sky-soft:#eaf7fe;
+    --sand:#f6e7c8; --sand-deep:#efd8a6; --coral:#ff7a59; --coral-deep:#f15a36;
+    --green:#4fb477; --grape:#8a6fc0; --ember:#e0743a; --calm:#2fa39a;
+    --ink:#234055; --ink-soft:#5a7383; --paper:#fbf7ef; --card:#ffffff;
+    --shadow:0 10px 30px rgba(35,64,85,.12); --shadow-lg:0 24px 60px rgba(35,64,85,.28);
+    --radius:20px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;
+    color:var(--ink); background:var(--paper); line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+  a{color:inherit}
+  :focus-visible{outline:3px solid var(--sea);outline-offset:2px;border-radius:6px}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    position:relative;overflow:hidden;color:#fff;text-align:center;
+    background:
+      linear-gradient(180deg,rgba(27,111,158,.74) 0%,rgba(42,157,208,.5) 45%,rgba(127,201,232,.42) 72%,rgba(246,231,200,.92) 100%),
+      url('images/hero.webp') center 28%/cover no-repeat;
+    padding:64px 20px 120px;
+  }
+  .hero .sun{position:absolute;top:34px;left:50%;transform:translateX(-50%);
+    width:120px;height:120px;border-radius:50%;
+    background:radial-gradient(circle at 50% 45%,rgba(255,246,216,.95),rgba(255,216,107,.85) 60%,rgba(255,216,107,0) 72%);
+    filter:blur(1px)}
+  .hero .crown{font-size:46px;display:block;margin-bottom:6px;position:relative}
+  .hero h1{position:relative;font-size:clamp(28px,5vw,46px);margin:0 0 10px;
+    letter-spacing:.04em;text-shadow:0 2px 16px rgba(15,55,80,.55)}
+  .hero .sub{position:relative;font-size:clamp(15px,2.4vw,19px);font-weight:600;
+    text-shadow:0 1px 10px rgba(15,55,80,.6)}
+  .hero .lead{position:relative;max-width:720px;margin:16px auto 0;font-size:14px;
+    text-shadow:0 1px 8px rgba(15,55,80,.55)}
+  .hero-book{position:relative;display:inline-flex;align-items:center;gap:8px;margin-top:20px;
+    background:var(--coral);color:#fff;font-weight:800;font-size:15px;padding:13px 26px;border-radius:999px;
+    text-decoration:none;box-shadow:0 8px 22px rgba(241,90,54,.45);transition:.15s}
+  .hero-book:hover{transform:translateY(-2px);background:var(--coral-deep)}
+  .waves{position:absolute;bottom:-2px;left:0;width:100%;height:90px;display:block}
+
+  /* ---------- Worldview ---------- */
+  .world{margin-top:-70px;position:relative;z-index:2}
+  .world-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .world-card{background:var(--card);border-radius:var(--radius);padding:22px 24px;box-shadow:var(--shadow)}
+  .world-card h3{margin:0 0 6px;font-size:17px;display:flex;align-items:center;gap:8px}
+  .world-card p{margin:0;font-size:13.5px;color:var(--ink-soft)}
+  .world-card.kids{border-top:5px solid var(--coral)}
+  .world-card.adult{border-top:5px solid var(--calm)}
+  @media(max-width:720px){.world-grid{grid-template-columns:1fr}}
+
+  /* ---------- Progress (図鑑制覇) ---------- */
+  .progress{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 22px;margin:24px 0 8px}
+  .progress-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;flex-wrap:wrap;gap:6px}
+  .progress-top span{font-size:14px;font-weight:800;color:var(--ink)}
+  .progress-top b{font-size:15px;color:var(--coral-deep)}
+  .progress-bar{height:12px;background:#eef2f5;border-radius:999px;overflow:hidden}
+  .progress-fill{height:100%;width:0;border-radius:999px;
+    background:linear-gradient(90deg,var(--sea),var(--green));transition:width .4s ease}
+  .progress-note{margin:9px 0 0;font-size:12px;color:var(--ink-soft)}
+  .progress.done .progress-fill{background:linear-gradient(90deg,#ffb03a,#ff7a59)}
+
+  /* ---------- Filters ---------- */
+  .filters{margin:30px 0 8px}
+  .filters .frow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+  .filters .flabel{font-size:12.5px;font-weight:700;color:var(--ink-soft);min-width:84px}
+  .chip{border:1.5px solid #d8e4ec;background:#fff;color:var(--ink);
+    padding:7px 14px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;
+    transition:.15s;white-space:nowrap;font-family:inherit}
+  .chip:hover{border-color:var(--sea);color:var(--sea-deep)}
+  .chip.on{background:var(--sea);border-color:var(--sea);color:#fff;box-shadow:0 4px 12px rgba(42,157,208,.35)}
+  .chip.reset.on{background:var(--ink);border-color:var(--ink)}
+  .toggle{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--ink-soft);cursor:pointer;margin-left:4px}
+  .toggle input{width:16px;height:16px;accent-color:var(--sea);cursor:pointer}
+  .count{font-size:13px;color:var(--ink-soft);margin:4px 0 18px;font-weight:600}
+  .count b{color:var(--coral-deep);font-size:16px}
+
+  /* ---------- Card grid ---------- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:22px;padding-bottom:30px}
+  .card{background:var(--card);border-radius:var(--radius);overflow:hidden;cursor:pointer;
+    box-shadow:var(--shadow);transition:.2s;border:1px solid #eee;display:flex;flex-direction:column}
+  .card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg)}
+  .card.done{border:2px solid #ffc24a;box-shadow:0 10px 30px rgba(255,170,40,.28)}
+  .ph{position:relative;height:170px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+  .ph .emoji{font-size:60px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.18))}
+  .ph .cat{position:absolute;bottom:8px;left:8px;color:#fff;font-size:11px;font-weight:700;z-index:2;
+    padding:4px 10px;border-radius:999px;background:rgba(0,0,0,.42);backdrop-filter:blur(2px)}
+  .ph:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,.28));z-index:1}
+  .badge-soon{position:absolute;top:9px;right:9px;z-index:3;background:#ffce3a;color:#5a4300;
+    font-size:11px;font-weight:800;padding:3px 10px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+  .badge-pop{position:absolute;top:9px;right:9px;z-index:3;background:var(--coral);color:#fff;
+    font-size:11px;font-weight:800;padding:3px 10px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  .imgnote{position:absolute;bottom:8px;right:8px;z-index:2;background:rgba(0,0,0,.5);
+    color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;letter-spacing:.05em}
+  .stamp{position:absolute;top:8px;left:8px;z-index:4;border:none;cursor:pointer;font-family:inherit;
+    background:rgba(255,255,255,.92);color:var(--ink-soft);font-size:11px;font-weight:800;
+    padding:5px 10px;border-radius:999px;box-shadow:0 2px 6px rgba(0,0,0,.2);transition:.12s}
+  .stamp:hover{background:#fff}
+  .stamp.on{background:#ffc24a;color:#5a4300}
+  .body{padding:14px 16px 16px;display:flex;flex-direction:column;flex:1}
+  .body h3{margin:0 0 9px;font-size:16.5px;line-height:1.4}
+  .do{margin:0 0 12px;font-size:13px;color:var(--ink);flex:1;line-height:1.6}
+  .do-tag{display:inline-block;background:#eef6fb;color:var(--sea-deep);font-size:10px;font-weight:800;
+    padding:2px 8px;border-radius:6px;margin-right:7px;letter-spacing:.04em;transform:translateY(-1px)}
+  .meta{display:flex;flex-wrap:wrap;gap:6px 10px;font-size:11.5px;color:var(--ink-soft);
+    border-top:1px dashed #e6ebef;padding-top:10px}
+  .meta span{display:inline-flex;align-items:center;gap:3px}
+  .fee{margin-left:auto;font-weight:800;font-size:11.5px}
+  .fee-free{color:#2e9d63} .fee-inc{color:#1b7fb8} .fee-paid{color:#e0743a} .fee-tbd{color:#9a9a9a}
+  .more{margin-top:10px;font-size:12.5px;font-weight:800;color:var(--sea-deep)}
+
+  .ghost{border:2px dashed #c8d6e0;background:#fff;border-radius:var(--radius);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+    color:var(--ink-soft);min-height:300px;cursor:default;padding:20px}
+  .ghost .plus{font-size:42px;color:var(--sea);line-height:1}
+  .ghost b{display:block;margin:10px 0 4px;color:var(--ink);font-size:14px}
+  .ghost small{font-size:11.5px}
+
+  /* category gradients (fallback) */
+  .g-sea{background:linear-gradient(135deg,#56c0e8,#1b6f9e)}
+  .g-adv{background:linear-gradient(135deg,#ffb36b,#f15a36)}
+  .g-play{background:linear-gradient(135deg,#7fd49a,#2f9d6a)}
+  .g-make{background:linear-gradient(135deg,#b79be0,#7857b5)}
+  .g-food{background:linear-gradient(135deg,#ffb04d,#e0531f)}
+  .g-relax{background:linear-gradient(135deg,#63c9c0,#1f8a82)}
+  .cc-sea{background:var(--sea)} .cc-adv{background:var(--coral-deep)} .cc-play{background:var(--green)}
+  .cc-make{background:var(--grape)} .cc-food{background:var(--ember)} .cc-relax{background:var(--calm)}
+
+  /* ---------- Modal ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(20,40,55,.55);backdrop-filter:blur(3px);
+    display:none;align-items:flex-start;justify-content:center;padding:30px 16px;z-index:50;overflow:auto}
+  .overlay.show{display:flex}
+  .modal{background:#fff;border-radius:24px;max-width:680px;width:100%;overflow:hidden;
+    box-shadow:var(--shadow-lg);animation:pop .25s ease}
+  @keyframes pop{from{transform:translateY(24px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+  .m-ph{height:260px;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .m-ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .m-ph .emoji{font-size:96px;filter:drop-shadow(0 6px 12px rgba(0,0,0,.2))}
+  .m-close{position:absolute;top:12px;left:12px;width:38px;height:38px;border-radius:50%;border:none;z-index:5;
+    background:rgba(255,255,255,.92);color:var(--ink);font-size:20px;cursor:pointer;font-weight:700;
+    display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+  .m-body{padding:24px 28px 30px}
+  .m-cat{display:inline-block;color:#fff;font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px;margin-bottom:8px}
+  .m-body h2{margin:0 0 4px;font-size:24px}
+  .soon-note{background:#fff7e0;border:1px solid #ffe49c;color:#7a5a00;font-size:12.5px;font-weight:700;
+    border-radius:12px;padding:10px 14px;margin:14px 0 0}
+  .m-story{position:relative;background:linear-gradient(135deg,#eaf7fe,#fff6e6);border:1px solid #d8ecf7;
+    border-radius:16px;padding:32px 20px 20px;margin:22px 0 20px;font-size:15.5px;line-height:1.95;color:#2a4a5e}
+  .m-story-tag{position:absolute;top:-13px;left:16px;background:var(--sea);color:#fff;font-size:12px;font-weight:800;
+    padding:5px 13px;border-radius:999px;box-shadow:0 3px 8px rgba(42,157,208,.35)}
+  .m-info{border:1px solid #eef2f5;border-radius:14px;overflow:hidden;margin-bottom:14px}
+  .m-info-h{display:block;background:#f4f8fb;color:var(--ink-soft);font-size:12px;font-weight:800;
+    padding:8px 14px;letter-spacing:.06em}
+  .m-info-row{display:flex;gap:12px;padding:10px 14px;border-top:1px solid #f0f4f7;font-size:13.5px}
+  .m-info-row .k{flex:0 0 92px;color:var(--ink-soft);font-weight:700}
+  .m-info-row .v{font-weight:700;color:var(--ink)}
+  .m-adult{background:#eafaf7;border:1px solid #c7ece7;border-radius:12px;padding:11px 14px;
+    margin:0 0 16px;font-size:13px;color:#1f6f68}
+  .tips{margin:0 0 18px;padding:0;list-style:none}
+  .tips li{font-size:13px;padding:7px 0 7px 26px;position:relative;border-bottom:1px dashed #eee}
+  .tips li:before{content:"✓";position:absolute;left:4px;color:var(--green);font-weight:800}
+  .m-section-h{font-size:13px;font-weight:800;color:var(--ink-soft);letter-spacing:.05em;margin:0 0 6px}
+  .m-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+  .m-book{flex:1;min-width:200px;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    background:var(--coral);color:#fff;font-weight:800;font-size:15px;padding:14px 18px;border-radius:14px;
+    text-decoration:none;box-shadow:0 8px 20px rgba(241,90,54,.4);transition:.15s}
+  .m-book:hover{transform:translateY(-2px);background:var(--coral-deep)}
+  .m-stamp{display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-family:inherit;
+    border:2px solid #ffc24a;background:#fff;color:#a06b00;font-weight:800;font-size:14px;padding:12px 18px;border-radius:14px;transition:.12s}
+  .m-stamp.on{background:#ffc24a;color:#5a4300}
+
+  /* ---------- Footer note ---------- */
+  .note{background:#fff;border-radius:var(--radius);padding:22px 26px;margin:10px 0 50px;
+    box-shadow:var(--shadow);font-size:13px;color:var(--ink-soft)}
+  .note h3{margin:0 0 10px;color:var(--ink);font-size:15px}
+  .note ul{margin:6px 0 0;padding-left:20px}
+  .note li{margin-bottom:5px}
+  .tag-proto{display:inline-block;background:var(--coral);color:#fff;font-size:11px;font-weight:700;
+    padding:3px 10px;border-radius:6px;letter-spacing:.05em;margin-bottom:14px}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <span class="sun"></span>
+  <span class="crown">👑</span>
+  <h1>BREEZE 海辺の王国</h1>
+  <div class="sub">― 体験ずかん ―</div>
+  <p class="lead">こどもは冒険、おとなはリラックス。手ぶらで、まるごと遊びつくす。<br>
+  ひとつひとつの体験に、海辺の王国のストーリーを。</p>
+  <a class="hero-book" href="https://breeze-camp.com/" target="_blank" rel="noopener">🏕 ご予約・空き状況を見る →</a>
+  <svg class="waves" viewBox="0 0 1440 90" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path fill="#fbf7ef" d="M0,40 C240,90 480,0 720,30 C960,60 1200,10 1440,45 L1440,90 L0,90 Z"></path>
+  </svg>
+</header>
+
+<main class="wrap">
+
+  <section class="world">
+    <div class="world-grid">
+      <div class="world-card kids">
+        <h3>🧒 子供王国 ― 冒険と発見</h3>
+        <p>砂浜、アスレチック、秘密基地。子供が「自分で見つけて、夢中になる」しかけを、王国のあちこちに。</p>
+      </div>
+      <div class="world-card adult">
+        <h3>🌿 大人の特等席 ― リラックス</h3>
+        <p>子供が遊ぶそばで、ハンモック・焚き火・海の音。「見守りながら、ちゃんと休める」時間を。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 図鑑制覇スタンプ -->
+  <section class="progress" id="progress" aria-live="polite">
+    <div class="progress-top">
+      <span>👑 王国制覇スタンプ</span>
+      <b id="pgnum">0 / 0</b>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="pgfill"></div></div>
+    <p class="progress-note" id="pgnote">カードの「制覇」を押すと記録されます（この端末に保存）。全部集めて、王国を制覇しよう！</p>
+  </section>
+
+  <!-- Filters -->
+  <section class="filters">
+    <div class="frow">
+      <span class="flabel">あそびの種類</span>
+      <button class="chip reset on" data-type="genre" data-val="all">すべて</button>
+      <button class="chip" data-type="genre" data-val="sea">🌊 海あそび</button>
+      <button class="chip" data-type="genre" data-val="adv">🧗 冒険ひろば</button>
+      <button class="chip" data-type="genre" data-val="play">🪁 みんなあそび</button>
+      <button class="chip" data-type="genre" data-val="make">✂️ つくる・まなぶ</button>
+      <button class="chip" data-type="genre" data-val="food">🔥 たき火・ごはん</button>
+      <button class="chip" data-type="genre" data-val="relax">🌿 大人のリラックス</button>
+    </div>
+    <div class="frow">
+      <span class="flabel">だれと</span>
+      <button class="chip reset on" data-type="who" data-val="all">すべて</button>
+      <button class="chip" data-type="who" data-val="toddler">👶 幼児〜</button>
+      <button class="chip" data-type="who" data-val="kids">🧒 小学生〜</button>
+      <button class="chip" data-type="who" data-val="family">👨‍👩‍👧 親子いっしょ</button>
+      <button class="chip" data-type="who" data-val="adult">🧑 大人だけでも</button>
+    </div>
+    <div class="frow">
+      <span class="flabel">表示</span>
+      <label class="toggle"><input type="checkbox" id="showSoon" checked> 💡 構想中（これから）も表示する</label>
+    </div>
+  </section>
+  <div class="count"><b id="cnt">0</b> 件の体験</div>
+
+  <section class="grid" id="grid"></section>
+
+  <section class="note">
+    <span class="tag-proto">PROTOTYPE</span>
+    <h3>📌 担当者の方へ ― このプロトタイプについて</h3>
+    <ul>
+      <li>カードは「<b>写真＋やること</b>」のみのシンプル表示。クリックで <b>「👑 王国ストーリー」＋基本情報＋予約ボタン</b> が開きます。</li>
+      <li><b>🏕 予約導線</b>：各体験から「ご予約・空き状況」へ誘導（現在は breeze-camp.com に接続。実際の予約ページに差し替え可）。</li>
+      <li><b>👑 制覇スタンプ</b>：体験を集める“図鑑ゲーム化”でリピート動機に（記録はご覧の端末に保存）。</li>
+      <li><b>💡「これから」</b>＝構想中サンプル。「構想中も表示する」のチェックを外せば、<b>お客様向け（今あるものだけ）</b>の表示に切り替わります。</li>
+      <li>写真は <b>breeze-camp.com の実写</b> が中心。右下「<b>イメージ</b>」は差し替え用の参考画像（フリー素材）です。「<b>★人気</b>」はサンプル表示です。</li>
+      <li>全28件。コンテンツは <code>ITEMS</code> 配列で管理＝<b>増やす・減らす・並べ替え</b>が容易なデータ駆動設計です。</li>
+    </ul>
+  </section>
+
+</main>
+
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="体験の詳細">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+const BOOK_URL = "https://breeze-camp.com/";
+
+const CATS = {
+  sea:  {label:"海あそび",        g:"g-sea",  cc:"cc-sea"},
+  adv:  {label:"冒険ひろば",      g:"g-adv",  cc:"cc-adv"},
+  play: {label:"みんなあそび",    g:"g-play", cc:"cc-play"},
+  make: {label:"つくる・まなぶ",  g:"g-make", cc:"cc-make"},
+  food: {label:"たき火・ごはん",  g:"g-food", cc:"cc-food"},
+  relax:{label:"大人のリラックス",g:"g-relax",cc:"cc-relax"},
+};
+
+/* do=カードのやること / story=王国ストーリー / adult=大人にうれしい
+   note:"イメージ"=フリー素材の参考画像 / popular=人気サンプル / status:"soon"=構想中 */
+const ITEMS = [
+  { cat:"sea", emoji:"🏖️", img:"beach.jpg", popular:true, title:"ビーチで宝さがし",
+    do:"貝がら拾い・砂のお城・波あそび", who:["toddler","kids","family"], time:"自由", price:"無料",
+    story:"ここは王国の入口、目の前に広がる海辺のフィールド。貝がらや流木の“お宝”を集めたり、砂のお城をつくったり、波と追いかけっこ。遠浅でおだやかだから、はじめての海あそびも安心です。何も持っていなくても、一日中冒険できる場所です。",
+    adult:"パラソルの下から見守りつつ、波の音でひと休み。",
+    tips:["サンダル・帽子・タオルがあると快適","午前中は日差しがやわらかくおすすめ","ビーチサンダルは無料レンタルあり（要確認）"] },
+
+  { cat:"sea", emoji:"🏰", img:"sandpit.jpg", title:"砂場の王国づくり",
+    do:"お城・トンネルづくり（砂あそび）", who:["toddler","family"], time:"自由", price:"無料",
+    story:"これは王国いちばん小さな冒険者のための砂場です。さらさらの遊びやすい砂に、スコップやバケツ。お城やトンネルをつくって、こわして、また直して。安全な専用エリアだから、小さな子も思いきり手を汚して遊べます。",
+    adult:"すぐそばで見守れるから、親もゆっくり座っていられる。",
+    tips:["着替えがあると安心","砂遊びセットの貸し出しあり","日よけのある時間帯が快適"] },
+
+  { cat:"adv", emoji:"🧗", img:"wall.jpg", title:"クライミングウォールに挑戦",
+    do:"壁のぼりにチャレンジ", who:["kids","family"], time:"約15分／回", price:"無料",
+    story:"子供王国の“挑戦の塔”。カラフルな突起に手と足をかけて、てっぺんを目指します。子供サイズで安全マット付きだから、はじめてでも大丈夫。あと一歩、もう一歩——登りきった時の「できた！」が、王国の勲章です。",
+    adult:"がんばる姿は、最高のシャッターチャンス。",
+    tips:["動きやすい服装・靴で","スタッフが見守ります","小さな子は保護者と一緒に"] },
+
+  { cat:"adv", emoji:"🪜", img:"athletic.jpg", popular:true, title:"木製アスレチックの大冒険",
+    do:"のぼる・わたる・くぐる", who:["toddler","kids","family"], time:"自由", price:"無料",
+    story:"王国の森にある木のアスレチック。のぼって、わたって、すべって、くぐって——年齢に合わせたいろんなしかけが待っています。小さな子から小学生まで、自分のペースで何度でも冒険。気づけば体じゅう動かして、夢中になっています。",
+    adult:"たっぷり遊べば夜はぐっすり。親もうれしい運動量。",
+    tips:["動きやすい服装で","混雑時はゆずり合って","雨上がりは足元に注意"] },
+
+  { cat:"adv", emoji:"⛺", img:"dome.jpg", title:"キッズドーム（涼しい秘密基地）",
+    do:"屋内ドームで自由あそび（冷暖房完備）", who:["toddler","kids","family"], time:"自由", price:"無料",
+    story:"王国の屋内基地、3つのキッズドーム。ぜんぶ冷暖房つきだから、真夏も寒い日も快適。天気がくずれても“遊べない日”になりません。秘密基地みたいなドームの中で、子供たちは自由にあそびを発明します。",
+    adult:"暑さ寒さを気にせず、涼しい場所でひと休みできる。",
+    tips:["天候を気にせず遊べます","小さな子の休憩スポットにも","土足ルールは現地表示を確認"] },
+
+  { cat:"adv", emoji:"🛴", img:"scooter.jpg", title:"電動バランススクーター",
+    do:"スクーター乗車体験（小学生〜）", who:["kids"], time:"約10分／回", price:"有料（数量限定）",
+    story:"王国の“ちょっと大人な乗りもの”。専用エリアでスタッフのレクチャーつき、最初はドキドキでも、バランスをつかめばすいすい。新しいことに挑戦して、乗りこなせた時の笑顔は格別です。",
+    adult:"安全エリアでの体験だから、安心して見守れる。",
+    tips:["対象身長・年齢の確認をお願いします","ヘルメット着用","スタッフがレクチャーします"] },
+
+  { cat:"play", emoji:"🪁", img:"kite.jpg", title:"大空に凧をあげよう",
+    do:"海風で凧あげ", who:["toddler","kids","family"], time:"自由", price:"無料",
+    story:"海辺の王国ならではの遊び。安定した海風をつかまえれば、はじめてでも凧がぐんぐん高く揚がります。家族で糸を持って、空いっぱいの王国の旗を見上げる——風の強い日ほど、空が遊び場になります。",
+    adult:"海を背景に、のんびり空を見上げるぜいたくな時間。",
+    tips:["凧の貸し出しあり","風の強い日がおすすめ","広い場所でゆずり合って"] },
+
+  { cat:"play", emoji:"🎯", img:"molkky.jpg", popular:true, title:"みんなでモルック対決",
+    do:"木のピン倒しゲーム", who:["kids","family","adult"], time:"約20分／回", price:"無料",
+    story:"王国の集会あそび、モルック。棒を投げて木のピンを倒す、フィンランド生まれのゲームです。ルールは簡単、でも奥が深い。おじいちゃんから小さな子まで、世代をこえてみんなが主役になれます。",
+    adult:"お酒を片手に、大人も本気で楽しめる。",
+    tips:["道具の貸し出しあり","2〜複数人で対戦","芝生エリアで楽しめます"] },
+
+  { cat:"make", emoji:"⛺", img:"tent.jpg", popular:true, title:"はじめてのテント設営体験",
+    do:"家族でテントを建てる", who:["kids","family"], time:"約30分", price:"宿泊プランに含む",
+    story:"「はじめて」から「いつもの」へ——家族みんなで一棟のテントを建てる体験です。スタッフがそばでサポートするから、キャンプ初心者でも大丈夫。「自分たちで建てた“わが家”」が、その日いちばんの思い出になります。夜は灯りに照らされたテントで、特別な一夜を。",
+    adult:"手ぶらでOK。道具も知識もいらず、思い出だけ持ち帰れる。",
+    tips:["手ぶらキャンプ対応","スタッフがサポート","レンタル一式あり（寝袋・ランタン等）"] },
+
+  { cat:"make", emoji:"✂️", img:"workshop.jpg", title:"クラフトワークショップ",
+    do:"工作・ものづくり体験", who:["toddler","kids","family"], time:"約30〜60分", price:"有料（内容により変動）",
+    story:"王国の工房へようこそ。貝がらや自然の素材をつかって、世界にひとつの作品づくり。今日見た海や、拾ったお宝が、形になって持ち帰れます。季節やイベントで内容が変わるので、雨の日のお楽しみにもぴったりです。",
+    adult:"集中して取り組む我が子の横顔を、ゆっくり眺められる。",
+    tips:["開催内容はイベントカレンダーを確認","汚れてもよい服装で","小さな子は保護者と一緒に"] },
+
+  { cat:"food", emoji:"🍖", img:"bbq.jpg", popular:true, title:"WeberグリルでプレミアムBBQ",
+    do:"本格グリルでBBQ（手ぶら）", who:["family","adult"], time:"夕食タイム", price:"プラン・食材により変動",
+    story:"王国の夜のメインイベント、BBQ。本格的なWeberグリルで、火おこしも後片付けもラクラク。初心者でも“ちゃんと美味しい”焼き上がりです。自分で焼いたお肉は、いつもの何倍もおいしい——煙の向こうで、家族の顔がほころびます。",
+    adult:"火加減いらず・片付けラク。飲みながらゆっくり楽しめる。",
+    tips:["食材セットの事前予約がおすすめ","火おこし不要","用具は一式そろっています"] },
+
+  { cat:"food", emoji:"🦐", img:"food.jpg", title:"海鮮＆ステーキ 食材セット",
+    do:"食材セット（刺身・ステーキ／要予約）", who:["family","adult"], time:"夕食タイム", price:"有料（要予約）",
+    story:"海辺の王国の食卓には、地のものを。刺身の盛り合わせやステーキなど、こだわりの食材セットを事前予約でご用意します。買い出しの手間はゼロ。到着したら、すぐに“ごちそうキャンプ”の始まりです。",
+    adult:"仕込み不要、到着して即・乾杯できる身軽さ。",
+    tips:["事前予約制","アレルギーは事前にご相談を","内容は季節で変わります"] },
+
+  { cat:"relax", emoji:"🪢", img:"hammock.jpg", popular:true, title:"ハンモックでゆらゆら",
+    do:"ハンモックでのんびり（親子OK）", who:["toddler","family","adult"], time:"自由", price:"無料",
+    story:"王国でいちばんのんびりできる場所、木陰のハンモック。親子で一緒に乗ってもOK。海風と波の音に包まれて、ゆらゆら揺れているうちに、子供も大人もとろん。“何もしない”を楽しむ、特別な時間です。",
+    adult:"波音をBGMに、ただ揺られるだけの贅沢。",
+    tips:["親子で一緒に乗れます","木陰で涼しい時間帯がおすすめ","順番にゆずり合って"] },
+
+  { cat:"relax", emoji:"🔥", img:"takibi.jpg", note:"イメージ", title:"焚き火を囲む夜",
+    do:"焚き火（焚き火台レンタル）", who:["family","adult"], time:"夜", price:"焚き火台レンタルあり",
+    story:"王国に夜が来ると、焚き火の出番。手ぶらで楽しめる焚き火台で、パチパチ爆ぜる炎を家族で囲みます。マシュマロを焼くのも定番。炎を見つめていると、自然と会話がうまれる——一日の終わりの、魔法の時間です。",
+    adult:"炎を眺めながらの、しずかな一杯。",
+    tips:["焚き火台・薪のレンタルあり","火の取り扱いは大人が","消火ルールは現地表示を確認"] },
+
+  { cat:"adv", emoji:"🚲", img:"strider.jpg", title:"ストライダー・チャレンジ",
+    do:"ペダルなし自転車で練習", who:["toddler","kids"], time:"自由", price:"無料",
+    story:"子供王国の“はじめての乗りもの”、ストライダー。ペダルがないから、自分の足で地面をけって進みます。専用エリアで小さな子もぐんぐんスピードアップ。自転車デビュー前の練習にもなって、「自分で進めた！」がうれしい体験です。",
+    adult:"補助なしで遊べるので、芝生のそばで見守れる。",
+    tips:["無料で利用OK","ヘルメット着用","対象サイズの確認をお願いします"] },
+
+  { cat:"adv", emoji:"🛴", img:"kickboard.jpg", title:"キックボードでGO",
+    do:"キックボードで場内さんぽ", who:["kids"], time:"自由", price:"無料",
+    story:"王国をめぐる相棒、キックボード。安全なエリアで、風を切ってすいすい走り回れます。貸し出しだから手ぶらでOK。お気に入りの一台で、どこまでも行けそうな気分になれます。",
+    adult:"持ち込み不要で、手軽に遊ばせられる。",
+    tips:["無料貸し出し","ヘルメット着用","走ってよい場所を確認"] },
+
+  { cat:"adv", emoji:"🛝", img:"slide.jpg", title:"ころがるすべり台",
+    do:"すべり台あそび", who:["toddler","kids"], time:"自由", price:"無料",
+    story:"王国の定番、すべり台。ヒュー！と滑りおりる、ただそれだけ。でも何度すべっても、すぐにてっぺんへ戻りたくなる魔法があります。小さな子も安心して楽しめる、人気のスポットです。",
+    adult:"小さな子が安全に遊べて、すぐそばで見守れる。",
+    tips:["無料で利用OK","順番にゆずり合って","小さな子は付き添いを"] },
+
+  { cat:"play", emoji:"⚽", img:"soccer.jpg", title:"みんなでミニサッカー",
+    do:"ミニゴールでサッカー", who:["kids","family"], time:"自由", price:"無料",
+    story:"王国の芝のグラウンドで、ミニサッカー。小さなゴールめがけてシュート！ボールひとつで、家族もお友だちも本気で盛り上がります。ゴールを決めた瞬間の歓声が、王国にひびきます。",
+    adult:"一緒に体を動かして、いい運動＆いい思い出。",
+    tips:["ボールの貸し出しあり","芝生エリアで","周りに配慮して"] },
+
+  { cat:"play", emoji:"🃏", img:"cards.jpg", title:"トランプ・ボードゲーム",
+    do:"カード・ボードゲーム（レンタル）", who:["kids","family","adult"], time:"自由", price:"レンタルあり",
+    story:"雨の日や、夜のテントの中で。ランタンの灯りの下、トランプやカードゲームで家族の時間を過ごします。「大人に勝てるかも？」——静かな夜に、自然と笑い声と会話がうまれる、王国の夜あそびです。",
+    adult:"子供とゆっくり向き合える、何でもない時間。",
+    tips:["受付でレンタル","雨の日にも","夜のテント時間に"] },
+
+  { cat:"play", emoji:"🍬", img:"dagashi.jpg", note:"イメージ", title:"駄菓子屋さん",
+    do:"自分でおやつを選んでお買いもの", who:["toddler","kids","family"], time:"自由", price:"駄菓子代のみ",
+    story:"王国の小さなお店、駄菓子屋さん。自分のお小遣いをにぎって、どれにしようかなと選ぶ時間。自分で選んで、自分で買う——子供にとっては小さな冒険であり、はじめてのお買いものデビューにもなります。",
+    adult:"懐かしい駄菓子に、大人もつい童心に返る。",
+    tips:["小銭があると便利","食べ過ぎに注意","営業時間は現地で確認"] },
+
+  { cat:"play", emoji:"🏸", img:"badminton.jpg", note:"イメージ", title:"縄跳び・バドミントン",
+    do:"外あそび道具レンタル（縄跳び・羽根つき）", who:["kids","family"], time:"自由", price:"無料レンタル",
+    story:"思い立ったら、すぐ遊べる。縄跳びやバドミントンなど、外あそびの道具を無料で貸し出します。「何回跳べるかな？」「ラリー続くかな？」——手ぶらで来ても、体を動かして思いきり遊べる王国です。",
+    adult:"一緒に体を動かして、いい汗。",
+    tips:["受付で貸し出し","広い場所で","風の強い日はバドミントン注意"] },
+
+  { cat:"play", emoji:"🐕", img:"dogrun.webp", title:"ドッグラン",
+    do:"愛犬とのびのび（ドッグラン）", who:["family","adult"], time:"自由", price:"無料",
+    story:"王国の家族は、人だけじゃありません。リードを外して、ワンちゃんが思いきり走れるドッグラン。ペット連れの家族も、みんな一緒に楽しめます。愛犬も、立派な王国の一員です。",
+    adult:"愛犬がのびのび遊ぶ姿を眺めながら、ひと休み。",
+    tips:["同伴ルールの確認を","マナーを守って","リードは入口で"] },
+
+  /* ===== これからやりたいもの（構想中サンプル）===== */
+  { cat:"play", emoji:"🧹", img:"cleanup.jpg", note:"イメージ", status:"soon", title:"王国クリーン隊",
+    do:"ゴミ拾いで王国をピカピカに", who:["toddler","kids","family"], time:"約30分", price:"無料",
+    story:"王国を守る大切なミッション、それが「王国クリーン隊」。ゴミ袋を片手に、ビーチや場内をパトロールして、みんなの王国をピカピカにする活動です。ゴミ袋いっぱいに集められたら……王国から“いいこと”があるかも？遊びながら、自然を大切にする心も育つ、海辺の王国らしいアクティビティです。",
+    adult:"子供と一緒に、楽しみながら環境について話せる。",
+    tips:["構想中のコンテンツです","軍手・ゴミ袋は貸し出し予定","集めたら受付へ／ちいさなごほうびを検討中","危ないゴミは大人が拾って"] },
+
+  { cat:"sea", emoji:"🪣", img:"mugen_sand.jpg", note:"イメージ", status:"soon", title:"無限砂場 〜ビーチの王国〜",
+    do:"ビーチ沿いで本格お砂場道具あそび", who:["toddler","kids","family"], time:"自由", price:"構想中",
+    story:"ここは自然ゆたかなビーチ沿いに広がる、天然の砂浜。そこへ“面白い本格お砂場道具”を持ち出して、大きなお城やダム、川づくりに挑戦できる「無限砂場」です。海と砂がひとつの遊び場になって、終わりのない砂の王国づくりが始まります。",
+    adult:"つい一緒に夢中になる、童心にかえる時間。",
+    tips:["構想中のコンテンツです","道具は順次拡充の予定","海あそびとつなげて"] },
+
+  { cat:"relax", emoji:"🌇", img:"yogibo.jpg", note:"イメージ", status:"soon", title:"夕日のヨギボー",
+    do:"夕日を眺める特大ビーズソファ", who:["family","adult"], time:"夕方", price:"構想中",
+    story:"一日のごほうびは、王国の特等席で。海に沈む夕日を、特大のビーズソファ（ヨギボー）に沈んで眺めます。ふかふかに体をあずけて、空が染まっていくのをただ見るだけ。“何もしない”を味わう、大人のための時間です。",
+    adult:"夕日とビーズソファ、贅沢のきわみ。",
+    tips:["構想中のコンテンツです","夕暮れ時がおすすめ","数量を検討中"] },
+
+  { cat:"sea", emoji:"⛱️", img:"parasol.jpg", note:"イメージ", status:"soon", title:"ビーチパラソル貸し出し",
+    do:"日かげの拠点づくり（パラソル）", who:["family","adult"], time:"自由", price:"構想中",
+    story:"王国のビーチに、自分たちだけの日かげのお城を。ビーチパラソルを貸し出します。日差しをよける拠点があれば、小さな子連れでも安心して長く海あそびを楽しめます。休んで、また遊んで、を繰り返せる海辺の基地です。",
+    adult:"日差しを気にせず、海辺でゆっくり過ごせる。",
+    tips:["構想中のコンテンツです","子連れの海あそびに","数量を検討中"] },
+
+  { cat:"sea", emoji:"🎣", img:"fishing.jpg", note:"イメージ", status:"soon", title:"遠投フィッシング体験",
+    do:"手ぶらで海釣り体験", who:["kids","family","adult"], time:"構想中", price:"構想中",
+    story:"海辺の王国の、ちょっと本気なあそび。遠浅の海に向かって竿を振る、遠投フィッシング。道具は手ぶらでOK、はじめての海釣りを家族で体験できます。糸の先の手ごたえに、みんなでドキドキ——釣れたら大歓声です。",
+    adult:"海を見ながらの釣りは、最高のリフレッシュ。",
+    tips:["構想中のコンテンツです","手ぶらで体験できる形に","安全に配慮した内容を検討"] },
+
+  { cat:"relax", emoji:"🔭", img:"telescope.jpg", note:"イメージ", status:"soon", title:"星空望遠鏡ナイト",
+    do:"望遠鏡で星空観察", who:["family","adult"], time:"夜", price:"構想中",
+    story:"王国の夜のクライマックスは、満天の星。海辺で空が広く、街あかりも少ないこの場所で、望遠鏡をのぞけば、月のクレーターも、遠くの星も、すぐそこに。焚き火のあと、家族で静かに夜空を見上げる、スペシャルな時間です。",
+    adult:"焚き火のあとに、静かに星を眺める時間。",
+    tips:["構想中のコンテンツです","晴れた夜に","焚き火とセットで"] },
+];
+
+/* ===== state ===== */
+const grid = document.getElementById('grid');
+const cntEl = document.getElementById('cnt');
+let fGenre = new Set(["all"]);
+let fWho   = new Set(["all"]);
+const DONE_KEY = 'breeze_zukan_done_v1';
+let done = new Set((function(){ try{ return JSON.parse(localStorage.getItem(DONE_KEY)||'[]'); }catch(e){ return []; } })());
+function saveDone(){ try{ localStorage.setItem(DONE_KEY, JSON.stringify([...done])); }catch(e){} }
+
+const FALLBACK = "this.style.display='none';this.parentElement.querySelector('.emoji').style.display='block'";
+
+function feeChip(price){
+  if(/構想中/.test(price))            return {cls:'fee-tbd',  txt:'構想中'};
+  if(/無料|駄菓子代/.test(price))      return {cls:'fee-free', txt:'無料'};
+  if(/含む/.test(price))               return {cls:'fee-inc',  txt:'宿泊に含む'};
+  if(/レンタル/.test(price))           return {cls:'fee-paid', txt:'レンタル'};
+  return {cls:'fee-paid', txt:'有料'};
+}
+
+function photoInner(it){
+  const img = it.img ? `<img src="images/${it.img}" alt="${it.title}の様子" loading="lazy" onerror="${FALLBACK}">` : '';
+  const emojiStyle = it.img ? 'style="display:none"' : '';
+  const note = it.note ? `<span class="imgnote">${it.note}</span>` : '';
+  let badge = '';
+  if(it.status==="soon") badge = `<span class="badge-soon">💡 これから</span>`;
+  else if(it.popular)    badge = `<span class="badge-pop">★ 人気</span>`;
+  return `${img}<span class="emoji" ${emojiStyle}>${it.emoji}</span>${badge}${note}`;
+}
+
+function cardHTML(it, i){
+  const c = CATS[it.cat]; const fee = feeChip(it.price);
+  const stamp = it.status==="soon" ? '' :
+    `<button class="stamp ${done.has(it.title)?'on':''}" data-title="${it.title}" aria-pressed="${done.has(it.title)}">${done.has(it.title)?'✅ 制覇':'🏅 制覇'}</button>`;
+  return `<article class="card ${done.has(it.title)?'done':''}" data-i="${i}" role="button" tabindex="0" aria-label="${it.title}の詳細をひらく">
+    <div class="ph ${c.g}">
+      ${photoInner(it)}
+      ${stamp}
+      <span class="cat">${c.label}</span>
+    </div>
+    <div class="body">
+      <h3>${it.title}</h3>
+      <p class="do"><span class="do-tag">やること</span>${it.do}</p>
+      <div class="meta">
+        <span>⏱ ${it.time}</span>
+        <span class="fee ${fee.cls}">${fee.txt}</span>
+      </div>
+      <div class="more">👑 ストーリーを見る →</div>
+    </div>
+  </article>`;
+}
+
+function ghostHTML(){
+  return `<div class="ghost">
+    <div class="plus">＋</div>
+    <b>あたらしい体験を追加</b>
+    <small>現場で見つけた“あそび”を、<br>その日のうちにコンテンツに。</small>
+  </div>`;
+}
+
+function passFilter(it){
+  if(!document.getElementById('showSoon').checked && it.status==="soon") return false;
+  const okG = fGenre.has("all") || fGenre.has(it.cat);
+  const okW = fWho.has("all")   || it.who.some(w=>fWho.has(w));
+  return okG && okW;
+}
+
+function render(){
+  const list = ITEMS.map((it,i)=>({it,i})).filter(({it})=>passFilter(it));
+  grid.innerHTML = list.map(({it,i})=>cardHTML(it,i)).join('') + ghostHTML();
+  cntEl.textContent = list.length;
+  document.querySelectorAll('.card').forEach(card=>{
+    const i = +card.dataset.i;
+    card.addEventListener('click', ()=>openModal(i));
+    card.addEventListener('keydown', e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openModal(i); } });
+  });
+  document.querySelectorAll('.stamp').forEach(btn=>{
+    btn.addEventListener('click', e=>{ e.stopPropagation(); toggleDone(btn.dataset.title); });
+  });
+}
+
+function totalExperienceable(){ return ITEMS.filter(it=>it.status!=="soon").length; }
+function doneCount(){ return ITEMS.filter(it=>it.status!=="soon" && done.has(it.title)).length; }
+function updateProgress(){
+  const tot = totalExperienceable(), n = doneCount();
+  document.getElementById('pgnum').textContent = n + " / " + tot;
+  document.getElementById('pgfill').style.width = Math.round(n/tot*100) + "%";
+  const box = document.getElementById('progress');
+  if(n>=tot){ box.classList.add('done'); document.getElementById('pgnote').textContent = "🎉 王国制覇おめでとう！全部の体験を集めました。また遊びに来てね！"; }
+  else { box.classList.remove('done'); document.getElementById('pgnote').textContent = "カードの「制覇」を押すと記録されます（この端末に保存）。全部集めて、王国を制覇しよう！"; }
+}
+function toggleDone(title){
+  if(done.has(title)) done.delete(title); else done.add(title);
+  saveDone(); render(); updateProgress();
+  const ms = document.getElementById('mstamp');
+  if(ms && ms.dataset.title===title){
+    const on = done.has(title);
+    ms.classList.toggle('on', on);
+    ms.setAttribute('aria-pressed', on);
+    ms.textContent = on ? "✅ 制覇ずみ（タップで取消）" : "🏅 この体験を制覇する";
+  }
+}
+
+/* filters */
+document.querySelectorAll('.chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    const type=chip.dataset.type, val=chip.dataset.val;
+    const set = type==="genre" ? fGenre : fWho;
+    const row = chip.closest('.frow');
+    if(val==="all"){ set.clear(); set.add("all"); }
+    else { set.delete("all"); if(set.has(val)) set.delete(val); else set.add(val); if(set.size===0) set.add("all"); }
+    row.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on', set.has(c.dataset.val)));
+    render();
+  });
+});
+document.getElementById('showSoon').addEventListener('change', render);
+
+/* modal */
+const overlay = document.getElementById('overlay');
+const modal   = document.getElementById('modal');
+let lastFocus = null;
+
+function whoLabels(who){
+  const map={toddler:"幼児〜",kids:"小学生〜",family:"親子いっしょ",adult:"大人だけでも"};
+  return who.map(w=>map[w]).join(" / ");
+}
+
+function openModal(i){
+  const it = ITEMS[i], c = CATS[it.cat];
+  lastFocus = document.activeElement;
+  const isSoon = it.status==="soon";
+  const action = isSoon
+    ? `<div class="soon-note">💡 これは「これからやりたい」構想中のコンテンツのサンプルです（現在は提供していません）。</div>`
+    : `<div class="m-actions">
+         <a class="m-book" href="${BOOK_URL}" target="_blank" rel="noopener">🏕 ご予約・空き状況を見る</a>
+         <button class="m-stamp ${done.has(it.title)?'on':''}" id="mstamp" data-title="${it.title}" aria-pressed="${done.has(it.title)}">${done.has(it.title)?"✅ 制覇ずみ（タップで取消）":"🏅 この体験を制覇する"}</button>
+       </div>`;
+  modal.innerHTML = `
+    <div class="m-ph ${c.g}">
+      <button class="m-close" id="mclose" aria-label="閉じる">×</button>
+      ${photoInner(it)}
+    </div>
+    <div class="m-body">
+      <span class="m-cat ${c.cc}">${c.label}</span>
+      <h2>${it.title}</h2>
+      ${isSoon ? `<div class="soon-note">💡 これは「これからやりたい」構想中のコンテンツのサンプルです。</div>` : ''}
+      <div class="m-story"><span class="m-story-tag">👑 王国ストーリー</span>${it.story}</div>
+      <div class="m-info">
+        <span class="m-info-h">基本情報</span>
+        <div class="m-info-row"><span class="k">やること</span><span class="v">${it.do}</span></div>
+        <div class="m-info-row"><span class="k">だれと</span><span class="v">${whoLabels(it.who)}</span></div>
+        <div class="m-info-row"><span class="k">所要のめやす</span><span class="v">${it.time}</span></div>
+        <div class="m-info-row"><span class="k">料金</span><span class="v">${it.price}</span></div>
+      </div>
+      ${it.adult ? `<p class="m-adult">🌿 <b>大人にうれしい</b>：${it.adult}</p>` : ''}
+      <p class="m-section-h">たのしみ方・ポイント</p>
+      <ul class="tips">${it.tips.map(t=>`<li>${t}</li>`).join('')}</ul>
+      ${isSoon ? '' : '<p class="m-section-h">この体験を楽しむ</p>'}
+      ${action}
+    </div>`;
+  overlay.classList.add('show');
+  document.body.style.overflow='hidden';
+  const closeBtn = document.getElementById('mclose');
+  closeBtn.addEventListener('click', closeModal);
+  closeBtn.focus();
+  const ms = document.getElementById('mstamp');
+  if(ms) ms.addEventListener('click', ()=>toggleDone(ms.dataset.title));
+}
+function closeModal(){
+  overlay.classList.remove('show');
+  document.body.style.overflow='';
+  if(lastFocus && lastFocus.focus) lastFocus.focus();
+}
+overlay.addEventListener('click', e=>{ if(e.target===overlay) closeModal(); });
+document.addEventListener('keydown', e=>{ if(e.key==="Escape" && overlay.classList.contains('show')) closeModal(); });
+
+render();
+updateProgress();
+</script>
+<!-- ===== BREEZE 簡易パスワードゲート 本体 ===== -->
+<div id="breeze-gate" role="dialog" aria-modal="true" aria-label="合言葉の入力">
+  <form class="g-card" id="breeze-gate-form">
+    <h2>🌊 BREEZE 体験ずかん</h2>
+    <p>合言葉を入力してください</p>
+    <div class="g-err" id="breeze-gate-err">合言葉が違います</div>
+    <input type="password" id="breeze-gate-pw" placeholder="••••" inputmode="numeric" autocomplete="off" aria-label="合言葉">
+    <button type="submit">見る</button>
+  </form>
+</div>
+<script>
+(function(){
+  var GATE_PW='1234';
+  var g=document.getElementById('breeze-gate');
+  var f=document.getElementById('breeze-gate-form');
+  var pw=document.getElementById('breeze-gate-pw');
+  var err=document.getElementById('breeze-gate-err');
+  if(!g||!f||!pw) return;
+  if(document.documentElement.classList.contains('breeze-locked')){
+    setTimeout(function(){ try{ pw.focus(); }catch(e){} }, 60);
+  }
+  f.addEventListener('submit', function(ev){
+    ev.preventDefault();
+    if(pw.value===GATE_PW){
+      try{ localStorage.setItem('breeze_gate','ok'); }catch(e){}
+      document.documentElement.classList.remove('breeze-locked');
+    } else {
+      err.style.display='block';
+      pw.value=''; pw.focus();
+    }
+  });
+})();
+</script>
+</body>
+</html>
